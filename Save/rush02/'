@@ -1,0 +1,247 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   manage_digits.c                                    :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: ugbrouar <marvin@42.fr>                    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/08/25 11:33:46 by ugbrouar          #+#    #+#             */
+/*   Updated: 2024/08/25 16:42:20 by mgaudin          ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include <stdio.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <stdlib.h>
+
+int	ft_strlen(char *str)
+{
+	int	count;
+
+	count = 0;
+	while (str[count] != '\0')
+	{
+		count++;
+	}
+	return (count);
+}
+
+void	ft_putstr(char *str)
+{
+	int	index;
+
+	index = 0;
+	while (str[index] != '\0')
+		index++;
+}
+
+void	ft_putdict(char *str)
+{
+	int	temp;
+	int	i;
+
+	i = 0;
+	temp = 0;
+	if (str[0] == '\0')
+		ft_putstr("Dict Error\n");
+	while (str[temp - 1] != ' ')
+	{
+		temp++;
+	}
+	while (str[temp] != '\n' && str[0] != '\0')
+	{
+		write(1, &str[temp], 1);
+		temp++;
+	}
+	if (str[i + 1] != '\0')
+		write (1, " ", 1);
+}
+
+char	*ft_strstr(char *str, char *to_find)
+{
+	int	str_temp;
+	int	i;
+	int	tf_length;
+
+	tf_length = ft_strlen(to_find);
+	str_temp = 0;
+	if (to_find[0] == '\0')
+		return (&str[0]);
+	while (str[str_temp] != '\0')
+	{
+		if (str[str_temp] == to_find[0])
+		{
+			i = 0;
+			while (str[str_temp + i] == to_find[i])
+			{
+				i++;
+				if (i == tf_length)
+					return (&str[str_temp]);
+			}
+		}
+		str_temp++;
+	}
+	str[0] = '\0';
+	return (&str[0]);
+}
+
+char	*ft_innit_dict(void)
+{
+	int		fd;
+	int		i;
+	char	*str;
+	char	c;
+
+	i = 0;
+	fd = open("numbers.dict", O_RDONLY);
+	str = malloc(sizeof(char) * 1024);
+	while (read(fd, &c, 1) == 1)
+	{
+		str[i] = c;
+		i++;
+	}
+	str[i] = '\0';
+	close(fd);
+	return (str);
+}
+
+
+
+
+
+
+
+
+/* --------------------------------------------------------------------------------*/
+
+int	nb_len(int nb)
+{
+	int	count;
+
+	count = 0;
+	if (nb < 0)
+	{
+		nb = nb * -1;
+		count++;
+	}
+	while (nb != 0)
+	{
+		count++;
+		nb = nb / 10;
+	}
+	return (count);
+}
+
+char	*fill_number(char *tab, int nb, int i)
+{
+	tab[i] = '\0';
+	i--;
+	while (i >= 0)
+	{
+		tab[i] = (nb % 10 + '0');
+		nb = nb / 10;
+		i--;
+	}
+	return (&tab[0]);
+}
+
+char	*itoa(int nb)
+{
+	int		i;
+	char	*tab;
+
+	i = nb_len(nb);
+	tab = malloc(i * sizeof(char));
+	return (fill_number(tab, nb, i));
+}
+
+int	ft_atoi(char *str)
+{
+	int	i;
+	int	count;
+	int	res;
+
+	i = 0;
+	res = 0;
+	count = 0;
+	while (str[i] == 32 || (str[i] >= 9 && str[i] <= 13))
+		i = i + 1;
+	while (str[i] == '-' || str[i] == '+')
+	{
+		if (str[i] == '-')
+			count++;
+		i++;
+	}
+	while (str[i] <= '9' && str[i] >= '0')
+	{
+		res = res * 10 + (str[i] - '0');
+		i++;
+	}
+	if (count % 2 == 1)
+		return (-res);
+	return (res);
+}
+
+
+void    ft_manage_two_digits(char *nb, char *dict)
+{
+	char *res;
+	if (nb[0] == '0')
+		ft_putdict(ft_strstr(dict, &nb[1]));
+	else if (nb[1] == '0' || (nb[1] >= '0' && nb[1] <= '9' && nb[0] == '1'))
+        	ft_putdict(ft_strstr(dict, &nb[0]));
+        else
+        {
+                res = itoa(ft_atoi(&nb[0]) - ft_atoi(&nb[1]));
+                ft_putdict(ft_strstr(dict, &res[0]));
+                ft_putdict(ft_strstr(dict, &nb[1]));
+        }
+}
+
+
+void	ft_manage_digits(char *nb, char *dict)
+{
+	char *res;
+
+	if (ft_strlen(nb) == 0 || ft_strlen(nb) > 3)
+		write(1, "Error", 5);
+	else if (ft_strlen(nb) == 1)
+		ft_putdict(ft_strstr(dict, &nb[0]));
+	else if (ft_strlen(nb) == 2)
+	{
+		if (nb[1] == '0' || (nb[1] >= '0' && nb[1] <= '9' && nb[0] == '1'))
+			ft_putdict(ft_strstr(dict, &nb[0]));
+		else
+			ft_manage_two_digits(nb, dict);
+	}
+	else if (ft_strlen(nb) == 3)
+	{
+		if (nb[0] == '0')
+			ft_manage_two_digits(&nb[1], dict);
+		else
+		{
+			res = itoa(ft_atoi(&nb[0]) / 100);
+			ft_putdict(ft_strstr(dict, &res[0]));
+			ft_putdict(ft_strstr(dict, "100"));
+			if (nb[1] != '0' || nb[2] != '0')
+				ft_manage_two_digits(&nb[1], dict);
+		}
+	}	
+}
+
+
+
+
+/*----------------------------------------------------------------------------------------------*/
+
+
+
+int main(int argc, char **argv)
+{
+	(void) argc;
+	char *dict = ft_innit_dict();
+
+	ft_manage_digits(argv[1], dict);
+
+}
