@@ -4,7 +4,7 @@ It is divided into **days**, **rushes**, and **shell exercises**.
 
 ## Structure
 ```md
-piscine_C
+piscine_c
 ├── days     # Daily exercises in C
 ├── rushes   # Weekend group projects
 └── shell    # Shell scripting basics
